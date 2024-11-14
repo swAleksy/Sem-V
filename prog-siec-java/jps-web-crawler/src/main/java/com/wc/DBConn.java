@@ -72,6 +72,7 @@ public class DBConn {
                 System.out.println("Marked link as seen: " + link);
             } else {
                 System.out.println("No unseen links found.");
+                return null;
             }
         } catch (SQLException e) {
             e.printStackTrace();
