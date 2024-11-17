@@ -20,7 +20,7 @@ public class DBConn {
 
     public void createTables() {
         try {
-            String createTableSQL = "CREATE TABLE IF NOT EXISTS links (id INTEGER PRIMARY KEY AUTOINCREMENT, link TEXT,  seen BOOLEAN DEFAULT 0, occurrence INT DEFAULT 1)";
+            String createTableSQL = "CREATE TABLE IF NOT EXISTS links (id INTEGER PRIMARY KEY AUTOINCREMENT, link TEXT,  seen BOOLEAN DEFAULT 0)";
             statement.executeUpdate(createTableSQL);
             System.out.println("Table 'wc' created or already exists.");
         } catch (SQLException e) {
@@ -28,25 +28,26 @@ public class DBConn {
         }
     }
 
-    public void insertRow(String link) {
+    public void insertRow(String link, int seen) {  
         try {
-            String checkSQL = "SELECT occurrence FROM links WHERE link = ?";
+            String checkSQL = "SELECT seen FROM links WHERE link = ?";
             PreparedStatement checkStatement = connection.prepareStatement(checkSQL);
             checkStatement.setString(1, link);
             ResultSet rs = checkStatement.executeQuery();
 
             if (rs.next()) {
-                int currentOccurrence = rs.getInt("occurrence");
-                String updateSQL = "UPDATE links SET occurrence = ? WHERE link = ?";
+                int currentSeen = rs.getInt("seen");
+                String updateSQL = "UPDATE links SET seen = ? WHERE link = ?";
                 PreparedStatement updateStatement = connection.prepareStatement(updateSQL);
-                updateStatement.setInt(1, currentOccurrence + 1);
+                updateStatement.setInt(1, currentSeen + 1);
                 updateStatement.setString(2, link);
                 updateStatement.executeUpdate();
-                System.out.println("Incremented occurrence for link: " + link);
+                System.out.println("Incremented seen for link: " + link);
             } else {
-                String insertSQL = "INSERT INTO links (link, seen, occurrence) VALUES (?, 0, 1)";
+                String insertSQL = "INSERT INTO links (link, seen) VALUES (?, ?)";
                 PreparedStatement insertStatement = connection.prepareStatement(insertSQL);
                 insertStatement.setString(1, link);
+                insertStatement.setString(2, String.valueOf(seen));
                 insertStatement.executeUpdate();
                 System.out.println("Inserted new link: " + link);
             }
@@ -80,7 +81,6 @@ public class DBConn {
         return link;
     }
 
-    // Method to drop the 'links' table
     public void dropTables() {
         try {
             String dropTableSQL = "DROP TABLE IF EXISTS links";
@@ -91,7 +91,6 @@ public class DBConn {
         }
     }
 
-    // Method to disconnect from the database
     public void disconnect() {
         try {
             if (statement != null) statement.close();
@@ -102,7 +101,6 @@ public class DBConn {
         }
     }
 
-    // Method to display all rows from the 'links' table
     public void displayRows() {
         try {
             String selectSQL = "SELECT * FROM links";
